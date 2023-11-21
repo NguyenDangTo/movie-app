@@ -22,9 +22,9 @@ const Main = () => {
   };
 
   return (
-    <div className="w-full h-[600px] text-white pt-[72px]">
+    <div className="w-full h-[650px] text-white pt-[72px]">
       <div className="w-full h-full">
-        <div className="absolute w-full h-[600px] bg-gradient-to-r from-black"></div>
+        <div className="absolute w-full h-[550px-72px] bg-gradient-to-r from-black"></div>
         <img
           className="w-full h-full object-cover"
           src={`https://image.tmdb.org/t/p/original/${movie?.backdrop_path}`}

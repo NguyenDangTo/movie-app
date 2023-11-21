@@ -4,6 +4,7 @@ import { UserAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 
 const Signup = () => {
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { user, signUp } = UserAuth();
@@ -12,7 +13,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await signUp(email, password);
+      await signUp(displayName, email, password);
       navigate("/");
     } catch (error) {
       console.log(error);
@@ -36,6 +37,12 @@ const Signup = () => {
                 onSubmit={handleSubmit}
                 className="w-full flex flex-col py-4"
               >
+                <input
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="p-3 my-2 bg-gray-700 rouded"
+                  type="text"
+                  placeholder="Your name"
+                />
                 <input
                   onChange={(e) => setEmail(e.target.value)}
                   className="p-3 my-2 bg-gray-700 rouded"

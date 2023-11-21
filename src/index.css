@@ -7,4 +7,14 @@
 body {
   background-color: #000000;
   font-family: 'Lato', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 0px;
+  margin: 0px;
+}
+
+.scrollbar-thumb-red-500::-webkit-scrollbar-thumb {
+  border-radius: 12px;
+}
+
+.scrollbar-thumb-red-500::-webkit-scrollbar {
+  width: 5px;
 }

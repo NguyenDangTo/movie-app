@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  updateProfile,
 } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
 
@@ -13,18 +14,30 @@ const AuthContext = createContext();
 export function AuthContextProvider({ children }) {
   const [user, setUser] = useState({});
 
-  function signUp(email, password) {
-    createUserWithEmailAndPassword(auth, email, password);
-    setDoc(doc(db, "users", email), {
-      savedShows: [],
-    });
+  async function signUp(displayName, email, password) {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          setDoc(doc(db, "users", email), {
+            savedShows: [],
+          });
+        })
+        .then(() => {
+          const user = auth.currentUser;
+          updateProfile(user, {
+            displayName: displayName,
+          });
+        });
+    } catch (err) {
+      console.log(err);
+    }
   }
 
-  function logIn(email, password) {
+  async function logIn(email, password) {
     return signInWithEmailAndPassword(auth, email, password);
   }
 
-  function logOut() {
+  async function logOut() {
     return signOut(auth);
   }
 

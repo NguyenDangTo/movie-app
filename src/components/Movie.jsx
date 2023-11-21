@@ -1,71 +1,116 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { UserAuth } from "../context/AuthContext";
 import { db } from "../firebase";
-import { arrayUnion, doc, setDoc, updateDoc } from "firebase/firestore";
+import {
+  arrayUnion,
+  doc,
+  getDoc,
+  onSnapshot,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import Toastify from "./Toastify";
 
 const Movie = ({ item }) => {
   const [like, setLike] = useState(false);
-  const [saved, setSaved] = useState(false);
   const { user } = UserAuth();
+  const [likedMovies, setLikedMovies] = useState([]);
 
-  const movieID = doc(db, "users", `${user?.email}`);
+  const navigate = useNavigate();
+  const movieRef = doc(db, "users", `${user?.email}`);
 
-  const saveShow = async () => {
+  const handleLikeBtn = async () => {
     if (user?.email) {
-      setLike(!like);
-      setSaved(true);
-      // Check doc exists
-      // if exists, update doc
-      if (doc.exists) {
-        await updateDoc(movieID, {
-          savedShows: arrayUnion({
-            id: item.id,
-            title: item.title,
-            img: item.backdrop_path,
-          }),
-        }).then(() => {
-          console.log("Document successfully updated!");
-        });
-      } else {
-        // if not exists, create then update doc
-        await setDoc(doc(db, "users", user?.email), {
-          savedShows: [],
-        });
-        await updateDoc(movieID, {
-          savedShows: arrayUnion({
-            id: item.id,
-            title: item.title,
-            img: item.backdrop_path,
-          }),
-        }).then(() => {
-          console.log("Document successfully written!");
-        });
-      }
+      const result = [
+        ...likedMovies,
+        {
+          id: item.id,
+          title: item.title,
+          img: item.backdrop_path,
+        },
+      ];
+      await updateDoc(movieRef, {
+        savedShows: arrayUnion({
+          id: item.id,
+          title: item.title,
+          img: item.backdrop_path,
+        }),
+      }).then(() => {
+        setLike(true);
+        setLikedMovies(result);
+        Toastify("Lưu phim đã thích");
+        console.log("Document add successfully updated!");
+      });
     } else {
-      alert("Please log in to save a movie");
+      navigate(`/login`);
     }
   };
+  const handleDislikeBtn = async () => {
+    if (user?.email) {
+      try {
+        const result = likedMovies.filter((movie) => movie.id !== item.id);
+        await updateDoc(movieRef, {
+          savedShows: result,
+        }).then(() => {
+          setLike(false);
+          setLikedMovies(result);
+          Toastify("Xóa phim đã lưu");
+          console.log("Document delete successfully updated!");
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      navigate(`/login`);
+    }
+  };
+  const handleChooseFilm = (e) => {
+    e.preventDefault();
+    console.log(item.id);
+    navigate(`/movie/${item.id}`);
+  };
 
+  useEffect(() => {
+    onSnapshot(doc(db, "users", `${user?.email}`), (doc) => {
+      setLikedMovies(doc.data()?.savedShows);
+    });
+  }, [user?.email]);
+
+  useEffect(() => {
+    if (likedMovies?.find((movie) => movie.id === item.id)) {
+      setLike(true);
+    } else {
+      setLike(false);
+    }
+  }, [item.id, likedMovies]);
   return (
     <div className="w-[200px] sm:w-[300px] inline-block cursor-pointer p-2">
-      <div className="w-full cursor-pointer relative">
+      <div className="w-full cursor-pointer relative ">
         <img
           className="w-full h-auto block"
           src={`https://image.tmdb.org/t/p/w500/${item?.backdrop_path}`}
           alt={item?.title}
+          onClick={handleChooseFilm}
         />
-        <div className="absolute top-0 left-0 w-full h-full hover:bg-black/80 opacity-0 hover:opacity-100 text-white">
-          <p onClick={saveShow}>
-            {like ? (
-              <FaHeart className="absolute top-4 left-4 text-gray-300" />
-            ) : (
-              <FaRegHeart className="absolute top-4 left-4 text-gray-300" />
-            )}
-          </p>
-        </div>
+
+        {like ? (
+          <div
+            onClick={handleDislikeBtn}
+            className="absolute top-1 left-1 p-2 bg-red-600 rounded-md "
+          >
+            <FaHeart className="text-gray-300" />
+          </div>
+        ) : (
+          <div onClick={handleLikeBtn} className="absolute top-1 left-1 p-2 ">
+            <FaRegHeart className="text-red-600" />
+          </div>
+        )}
       </div>
-      <div className="text-gray-200 text-center pt-1">{item?.title}</div>
+      <div className="text-gray-200 text-center pt-1 px-4 truncate">
+        {item?.title ?? "Coming Soon"}
+      </div>
     </div>
   );
 };
