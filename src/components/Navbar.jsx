@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { UserAuth } from "../context/AuthContext";
 
@@ -6,6 +6,7 @@ const Navbar = () => {
   const { user, logOut } = UserAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleLogout = async () => {
     try {
@@ -17,7 +18,10 @@ const Navbar = () => {
   };
 
   const handleSearch = (e) => {
-    console.log(e.target.value);
+    e.preventDefault();
+    if (searchQuery === "") return alert("Please enter a movie name");
+    navigate(`/search/${searchQuery}`);
+    setSearchQuery("");
   };
 
   return (
@@ -35,6 +39,8 @@ const Navbar = () => {
       <div className="flex items-center w-full max-w-[600px] justify-center mx-4">
         <form onSubmit={handleSearch} className="flex items-center w-full">
           <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             type="text"
             placeholder="Search for movies"
             className="w-full rounded-md px-4 py-2 text-gray-700 focus:outline-none"

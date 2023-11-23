@@ -10,6 +10,7 @@ import { ToastContainer } from "react-toastify";
 import FilmDetails from "./pages/FilmDetails";
 import FilmWatch from "./pages/FilmWatch";
 import react, { useLayoutEffect } from "react";
+import Search from "./pages/Search";
 
 function App() {
   const location = useLocation();
@@ -45,14 +46,15 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* <Route
+          <Route
             path="/movie/:id/watch"
             element={
               <ProtectedRoute>
                 <FilmWatch />
               </ProtectedRoute>
             }
-          /> */}
+          />
+          <Route path="/search/:query" element={<Search />} />
         </Routes>
       </AuthContextProvider>
     </>

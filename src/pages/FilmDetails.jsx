@@ -1,15 +1,21 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import requests from "../Requests";
 import Layout from "../components/Layout";
-import { FaCalendarAlt, FaArrowRight } from "react-icons/fa";
+import { FaCalendarAlt, FaArrowRight, FaStar } from "react-icons/fa";
 
 const FilmDetails = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [movie, setMovie] = useState();
   const [videos, setVideos] = useState();
   const [credit, setCredit] = useState();
+
+  const handleWatchBtn = () => {
+    navigate(`/movie/${id}/watch`);
+  };
+
   useEffect(() => {
     axios
       .get(requests.requestFilmById.replace("id", id))
@@ -25,7 +31,6 @@ const FilmDetails = () => {
     axios
       .get(requests.requestFilmCreditById.replace("id", id))
       .then((response) => {
-        console.log(response.data);
         setCredit(response.data);
       })
       .catch((error) => {
@@ -64,8 +69,12 @@ const FilmDetails = () => {
 
           {/* Information of Film */}
           <div className="w-full md:w-1/3 h-auto relative flex flex-col p-8 gap-2">
-            <div className="text-white text-2xl font-sans font-bold w-full">
-              {movie?.title}
+            <div className="text-white text-2xl font-sans font-bold w-full flex items-center">
+              <div>{movie?.title}</div>
+              <div className="flex text-red-500 text-lg justify-center items-center mx-4 gap-1">
+                <div className="">{movie?.vote_average.toFixed(1)}</div>
+                <FaStar />
+              </div>
             </div>
             <div className="w-full flex items-center gap-4">
               <div className="bg-red-500 text-white p-1 rounded-md font-bold">
@@ -87,7 +96,10 @@ const FilmDetails = () => {
               <div>{movie?.overview}</div>
             </div>
             <div className="w-full p-4">
-              <div className="flex justify-center gap-2 items-center border border-red-500 py-4 px-8 rounded-3xl duration-300 hover:bg-red-500">
+              <div
+                className="flex justify-center gap-2 items-center border border-red-500 py-4 px-8 rounded-3xl duration-300 hover:bg-red-500 cursor-pointer"
+                onClick={handleWatchBtn}
+              >
                 <span>Watch Now</span>
                 <FaArrowRight />
               </div>
@@ -98,9 +110,9 @@ const FilmDetails = () => {
         <div className="flex flex-col">
           <div className="w-full flex flex-col-reverse md:flex-row justify-center p-8 gap-4">
             <div className="flex flex-col w-full md:w-3/4 items-center justify-center">
-              {videos?.map((video) => (
+              {videos?.map((index, video) => (
                 <iframe
-                  key={video?.id}
+                  key={index}
                   src={`https://www.youtube.com/embed/${video?.key}`}
                   title={video?.name}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -111,7 +123,7 @@ const FilmDetails = () => {
             </div>
             <div className="flex flex-col w-full md:w-1/4">
               <h2 className="font-bold p-4 text-2xl">CAST</h2>
-              <div className="w-full flex-col h-[400px] scrollbar scrollbar-thumb-red-500 pr-2 overflow-auto">
+              <div className="w-full flex-col h-[400px] md:h-[800px] scrollbar scrollbar-thumb-red-500 pr-2 overflow-auto">
                 {credit?.cast.map((cast) => (
                   <div
                     key={cast?.id}

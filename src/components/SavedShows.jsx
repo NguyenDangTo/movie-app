@@ -3,10 +3,13 @@ import { UserAuth } from "../context/AuthContext";
 import { db } from "../firebase";
 import { updateDoc, doc, onSnapshot } from "firebase/firestore";
 import { AiOutlineClose } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
 
 const SavedShows = () => {
   const [movies, setMovies] = useState([]);
   const { user } = UserAuth();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     onSnapshot(doc(db, "users", `${user?.email}`), (doc) => {
@@ -26,6 +29,10 @@ const SavedShows = () => {
     }
   };
 
+  const handleChooseFilm = (id) => {
+    navigate(`/movie/${id}`);
+  };
+
   return (
     <>
       <h2 className="text-white font-bold text-xl p-4">Liked Shows</h2>
@@ -34,6 +41,7 @@ const SavedShows = () => {
           <div
             key={item.id}
             className="w-[200px] sm:w-[350px] inline-block cursor-pointer relative p-2"
+            onClick={() => handleChooseFilm(item.id)}
           >
             <img
               className="w-full h-auto block"

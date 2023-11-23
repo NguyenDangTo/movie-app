@@ -86,7 +86,7 @@ const Movie = ({ item }) => {
     }
   }, [item.id, likedMovies]);
   return (
-    <div className="w-[200px] sm:w-[300px] inline-block cursor-pointer p-2">
+    <div className="w-[300px]  md:w-[340px] inline-block cursor-pointer p-2">
       <div className="w-full cursor-pointer relative ">
         <img
           className="w-full h-auto block"
