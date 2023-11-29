@@ -8,6 +8,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
+import Toastify from "../components/Toastify";
 
 const AuthContext = createContext();
 
@@ -24,11 +25,16 @@ export function AuthContextProvider({ children }) {
         })
         .then(() => {
           const user = auth.currentUser;
+          setUser({ ...user, displayName });
           updateProfile(user, {
             displayName: displayName,
           });
+        })
+        .then(() => {
+          Toastify("Account created successfully!");
         });
     } catch (err) {
+      Toastify(err.message);
       console.log(err);
     }
   }
@@ -42,7 +48,7 @@ export function AuthContextProvider({ children }) {
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
     });
     return () => {

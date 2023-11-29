@@ -38,22 +38,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/movie/:id"
-            element={
-              <ProtectedRoute>
-                <FilmDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/movie/:id/watch"
-            element={
-              <ProtectedRoute>
-                <FilmWatch />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/movie/:id" element={<FilmDetails />} />
+          <Route path="/movie/:id/watch" element={<FilmWatch />} />
           <Route path="/search/:query" element={<Search />} />
         </Routes>
       </AuthContextProvider>

@@ -1,15 +1,70 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import requests from "../Requests";
 import Layout from "../components/Layout";
-import { FaCalendarAlt, FaArrowRight } from "react-icons/fa";
+import { FaCalendarAlt, FaStar } from "react-icons/fa";
+import { RiSendPlaneFill } from "react-icons/ri";
+import bg_default_avt from "../assets/img/default_avt.png";
+import { UserAuth } from "../context/AuthContext";
+import {
+  setDoc,
+  doc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+  runTransaction,
+  collection,
+  getDocs,
+} from "firebase/firestore";
+import { db } from "../firebase";
 
 const FilmWatch = () => {
   const { id } = useParams();
   const [movie, setMovie] = useState();
   const [videos, setVideos] = useState();
   const [credit, setCredit] = useState();
+  const [commentValue, setCommentValue] = useState("");
+  const { user } = UserAuth();
+  const navigate = useNavigate();
+  const [comments, setComments] = useState([]);
+
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    const movieRef = doc(db, "movies", movie.id.toString());
+
+    try {
+      const docSnapshot = await getDoc(movieRef);
+
+      if (docSnapshot.exists()) {
+        // Movie exists, update the comments array
+        await updateDoc(movieRef, {
+          comments: arrayUnion({
+            displayName: user.displayName,
+            userId: user.uid,
+            comment: commentValue,
+          }),
+        });
+        setComments([...comments, { userId: user.uid, comment: commentValue }]);
+      } else {
+        // Movie does not exist, create a new document
+        await setDoc(movieRef, {
+          comments: [
+            {
+              displayName: user.displayName,
+              userId: user.uid,
+              comment: commentValue,
+            },
+          ],
+        });
+        setComments([...comments, { userId: user.uid, comment: commentValue }]);
+      }
+      setCommentValue("");
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   useEffect(() => {
     axios
       .get(requests.requestFilmById.replace("id", id))
@@ -25,7 +80,6 @@ const FilmWatch = () => {
     axios
       .get(requests.requestFilmCreditById.replace("id", id))
       .then((response) => {
-        console.log(response.data);
         setCredit(response.data);
       })
       .catch((error) => {
@@ -43,6 +97,22 @@ const FilmWatch = () => {
         console.error(error);
       });
   }, [id]);
+
+  const handleLoginBtn = () => {
+    navigate(`/login`);
+  };
+
+  // get comments from firestore
+  useEffect(() => {
+    const getComments = async () => {
+      const movieRef = doc(db, "movies", movie?.id.toString());
+      const docSnapshot = await getDoc(movieRef);
+      if (docSnapshot.exists()) {
+        setComments(docSnapshot.data().comments);
+      }
+    };
+    getComments();
+  }, [movie?.id]);
   return (
     <Layout>
       <div className="w-full min-h-screen text-white overflow-hidden">
@@ -59,6 +129,97 @@ const FilmWatch = () => {
             allowFullScreen
             className="p-4 w-full md:w-[1000px] h-[350px] md:h-[600px]"
           ></iframe>
+        </div>
+
+        <div className="flex flex-col w-full p-8 md:px-[48px] gap-4">
+          <div className="text-white text-2xl font-sans font-bold w-full flex items-center">
+            <div>{movie?.title}</div>
+            <div className="flex text-red-500 text-lg justify-center items-center mx-4 gap-1">
+              <div className="">{movie?.vote_average.toFixed(1)}</div>
+              <FaStar />
+            </div>
+          </div>
+          <div className="w-full flex items-center gap-4">
+            <div className="bg-red-500 text-white p-1 rounded-md font-bold">
+              HD 4K
+            </div>
+            <div className="flex items-center gap-1">
+              <FaCalendarAlt />
+              <div>{movie?.release_date}</div>
+            </div>
+          </div>
+          <div className="w-full flex">
+            {movie?.genres.map((genre) => (
+              <div key={genre.id} className="p-2 font-bold">
+                {genre.name}
+              </div>
+            ))}
+          </div>
+          <div className="w-full flex">
+            <div>{movie?.overview}</div>
+          </div>
+        </div>
+
+        <div className="p-6 my-6">
+          <div className="mx-6 font-bold text-2xl">Comments:</div>
+
+          {!user?.uid ? (
+            <div className="w-full text-center text-bold m-4">
+              Please{" "}
+              <span
+                className="text-red-500 cursor-pointer hover:underline"
+                onClick={handleLoginBtn}
+              >
+                LOGIN
+              </span>{" "}
+              to comment
+            </div>
+          ) : (
+            <form
+              onSubmit={handleAddComment}
+              className="mt-5 flex items-center"
+            >
+              <input
+                value={commentValue}
+                onChange={(e) => setCommentValue(e.target.value)}
+                type="text"
+                placeholder="Comment"
+                className="ml-4 px-5 py-2 w-full text-white bg-white/10 rounded-full outline-none"
+              />
+              <button type="submit" className="ml-3 px-3">
+                <RiSendPlaneFill className="text-4xl text-red" />
+              </button>
+            </form>
+          )}
+
+          <div className="mt-8 max-h-[700px] overflow-y-auto flex flex-col">
+            {comments?.map((comment, index) => (
+              <div
+                key={index}
+                className={`flex items-center ${
+                  user?.uid === comment.userId && "flex-row-reverse"
+                }`}
+              >
+                <div
+                  className={`flex ${
+                    user?.uid !== comment.userId && "flex-row-reverse"
+                  } justify-end items-center mx-8 my-2 text-black bg-white max-w-[400px] w-2/3 md:w-2/5 py-2 px-4 rounded-2xl flex-end h-auto`}
+                >
+                  <div className="flex flex-col">
+                    <div className="font-bold text-lg">
+                      {comment.displayName}
+                    </div>
+                    <div className="text-md">{comment.comment}</div>
+                  </div>
+                  <img
+                    className="w-[50px] h-[50px] object-cover rounded-full mx-4"
+                    src={bg_default_avt}
+                    alt={movie?.title}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </Layout>

@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import Toastify from "./Toastify";
+import bg_default_film from "../assets/img/default_bg_film.jpg";
 
 const Movie = ({ item }) => {
   const [like, setLike] = useState(false);
@@ -90,7 +91,11 @@ const Movie = ({ item }) => {
       <div className="w-full cursor-pointer relative ">
         <img
           className="w-full h-auto block"
-          src={`https://image.tmdb.org/t/p/w500/${item?.backdrop_path}`}
+          src={
+            item?.backdrop_path
+              ? `https://image.tmdb.org/t/p/w500/${item?.backdrop_path}`
+              : bg_default_film
+          }
           alt={item?.title}
           onClick={handleChooseFilm}
         />
