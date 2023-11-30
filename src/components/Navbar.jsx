@@ -19,7 +19,7 @@ const Navbar = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchQuery === "") return alert("Please enter a movie name");
+    if (searchQuery === "") return;
     navigate(`/search/${searchQuery}`);
     setSearchQuery("");
   };
@@ -31,23 +31,23 @@ const Navbar = () => {
       }`}
     >
       <Link to="/">
-        <h1 className="text-red-600 text-4xl font-bold cursor-pointer hidden md:block">
+        <h1 className="text-red-600 text-3xl font-bold cursor-pointer hidden md:block">
           MOVIEE
         </h1>
       </Link>
 
-      <div className="flex items-center w-full max-w-[600px] justify-center mx-4">
+      <div className="flex items-center w-1/2 md:w-[600px] justify-center mx-4">
         <form onSubmit={handleSearch} className="flex items-center w-full">
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             type="text"
             placeholder="Search for movies"
-            className="w-full rounded-md px-4 py-2 text-gray-700 focus:outline-none"
+            className="w-full px-4 py-2 rounded-md text-gray-700 focus:outline-none"
           />
           <button
             type="submit"
-            className="bg-red-600 px-4 py-2 rounded text-white"
+            className="bg-red-600 px-4 py-2 ml-2 rounded-md text-white hidden md:block"
           >
             Search
           </button>
@@ -55,7 +55,7 @@ const Navbar = () => {
       </div>
 
       {user?.email ? (
-        <div className="hidden md:block">
+        <div className="block">
           <Link to="/account">
             <button className="text-white pr-4 hover:underline">{`Hello, ${user?.displayName}`}</button>
           </Link>
@@ -67,7 +67,7 @@ const Navbar = () => {
           </button>
         </div>
       ) : (
-        <div className="hidden md:block">
+        <div className="block">
           <Link to="/login">
             <button className="text-white pr-4">Log In</button>
           </Link>

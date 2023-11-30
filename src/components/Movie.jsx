@@ -69,7 +69,6 @@ const Movie = ({ item }) => {
   };
   const handleChooseFilm = (e) => {
     e.preventDefault();
-    console.log(item.id);
     navigate(`/movie/${item.id}`);
   };
 
