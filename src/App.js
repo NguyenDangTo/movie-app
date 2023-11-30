@@ -11,6 +11,7 @@ import FilmDetails from "./pages/FilmDetails";
 import FilmWatch from "./pages/FilmWatch";
 import react, { useLayoutEffect } from "react";
 import Search from "./pages/Search";
+import NotFound from "./pages/NotFound";
 
 function App() {
   const location = useLocation();
@@ -27,10 +28,11 @@ function App() {
       <AuthContextProvider>
         <ToastContainer />
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route exact path="/" element={<Home />} />
+          <Route exact path="/login" element={<Login />} />
+          <Route exact path="/signup" element={<Signup />} />
           <Route
+            exact
             path="/account"
             element={
               <ProtectedRoute>
@@ -38,9 +40,10 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/movie/:id" element={<FilmDetails />} />
-          <Route path="/movie/:id/watch" element={<FilmWatch />} />
-          <Route path="/search/:query" element={<Search />} />
+          <Route exact path="/movie/:id" element={<FilmDetails />} />
+          <Route exact path="/movie/:id/watch" element={<FilmWatch />} />
+          <Route exact path="/search/:query" element={<Search />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthContextProvider>
     </>

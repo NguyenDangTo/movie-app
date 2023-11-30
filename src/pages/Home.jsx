@@ -13,15 +13,10 @@ const Home = () => {
         title="Now Playing"
         fetchURL={requests.requestNowPlaying}
       />
-      <Slider
-        rowID="2"
-        title="New Release"
-        fetchURL={requests.requestNewRelease}
-      />
-      <Slider rowID="3" title="Up Coming" fetchURL={requests.requestUpcoming} />
-      <Slider rowID="4" title="Popular" fetchURL={requests.requestPopular} />
-      <Slider rowID="5" title="Trending" fetchURL={requests.requestTrending} />
-      <Slider rowID="6" title="Top Rated" fetchURL={requests.requestTopRated} />
+      <Slider rowID="2" title="Up Coming" fetchURL={requests.requestUpcoming} />
+      <Slider rowID="3" title="Popular" fetchURL={requests.requestPopular} />
+      <Slider rowID="4" title="Trending" fetchURL={requests.requestTrending} />
+      <Slider rowID="5" title="Top Rated" fetchURL={requests.requestTopRated} />
     </Layout>
   );
 };

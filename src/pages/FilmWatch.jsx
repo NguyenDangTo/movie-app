@@ -45,7 +45,14 @@ const FilmWatch = () => {
             comment: commentValue,
           }),
         });
-        setComments([...comments, { userId: user.uid, comment: commentValue }]);
+        setComments([
+          ...comments,
+          {
+            displayName: user.displayName,
+            userId: user.uid,
+            comment: commentValue,
+          },
+        ]);
       } else {
         // Movie does not exist, create a new document
         await setDoc(movieRef, {
@@ -57,7 +64,14 @@ const FilmWatch = () => {
             },
           ],
         });
-        setComments([...comments, { userId: user.uid, comment: commentValue }]);
+        setComments([
+          ...comments,
+          {
+            displayName: user.displayName,
+            userId: user.uid,
+            comment: commentValue,
+          },
+        ]);
       }
       setCommentValue("");
     } catch (error) {
@@ -116,7 +130,7 @@ const FilmWatch = () => {
   return (
     <Layout>
       <div className="w-full min-h-screen text-white overflow-hidden">
-        <div className="w-full min-h-screen flex flex-col md:flex-row justify-center items-center relative">
+        <div className="w-full h-[300px] mt-[60px] md:mt-2 md:min-h-screen flex flex-col md:flex-row justify-center items-center relative">
           <img
             className="w-full h-full absolute top-0 left-0 object-cover opacity-10 -z-10"
             src={`https://image.tmdb.org/t/p/w500/${movie?.backdrop_path}`}
@@ -206,7 +220,11 @@ const FilmWatch = () => {
                   } justify-end items-center mx-8 my-2 text-black bg-white max-w-[400px] w-2/3 md:w-2/5 py-2 px-4 rounded-2xl flex-end h-auto`}
                 >
                   <div className="flex flex-col">
-                    <div className="font-bold text-lg">
+                    <div
+                      className={`font-bold text-lg ${
+                        user?.uid === comment.userId && "text-right"
+                      }`}
+                    >
                       {comment.displayName}
                     </div>
                     <div className="text-md">{comment.comment}</div>

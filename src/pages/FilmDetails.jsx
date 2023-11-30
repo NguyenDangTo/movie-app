@@ -48,6 +48,7 @@ const FilmDetails = () => {
         console.error(error);
       });
   }, [id]);
+  console.log(credit?.cast.slice(0, 2));
   return (
     <Layout>
       <div className="w-full min-h-screen text-white overflow-hidden">
@@ -110,7 +111,7 @@ const FilmDetails = () => {
         <div className="flex flex-col">
           <div className="w-full flex flex-col-reverse md:flex-row justify-center p-8 gap-4">
             <div className="flex flex-col w-full md:w-3/4 items-center justify-center">
-              {videos?.map((index, video) => (
+              {videos?.slice(0, 2).map((index, video) => (
                 <iframe
                   key={index}
                   src={`https://www.youtube.com/embed/${video?.key}`}
