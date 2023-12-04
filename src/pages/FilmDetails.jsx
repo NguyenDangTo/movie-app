@@ -4,6 +4,18 @@ import { useNavigate, useParams } from "react-router-dom";
 import requests from "../Requests";
 import Layout from "../components/Layout";
 import { FaCalendarAlt, FaArrowRight, FaStar } from "react-icons/fa";
+import {
+  setDoc,
+  doc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+  runTransaction,
+  collection,
+  getDocs,
+  query,
+} from "firebase/firestore";
+import { db } from "../firebase";
 
 const FilmDetails = () => {
   const navigate = useNavigate();
@@ -11,9 +23,32 @@ const FilmDetails = () => {
   const [movie, setMovie] = useState();
   const [videos, setVideos] = useState();
   const [credit, setCredit] = useState();
+  const [viewCount, setViewCount] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
+  const handleWatchBtn = async () => {
+    const movieRef = doc(db, "movies", id.toString());
 
-  const handleWatchBtn = () => {
-    navigate(`/movie/${id}/watch`);
+    try {
+      const docSnapshot = await getDoc(movieRef);
+
+      if (docSnapshot.exists()) {
+        // Movie exists, update the view count
+        const movieData = docSnapshot.data();
+        const updatedViews = (movieData.views || 0) + 1;
+
+        await updateDoc(movieRef, {
+          views: updatedViews,
+        });
+
+        navigate(`/movie/${id}/watch`);
+      } else {
+        await setDoc(movieRef, {
+          views: 1,
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
   };
 
   useEffect(() => {
@@ -49,6 +84,62 @@ const FilmDetails = () => {
       });
   }, [id]);
 
+  // fetch view counts
+  useEffect(() => {
+    const fetchViewCount = async () => {
+      const movieRef = doc(db, "movies", id.toString());
+
+      try {
+        const docSnapshot = await getDoc(movieRef);
+
+        if (docSnapshot.exists()) {
+          const movieData = docSnapshot.data();
+          const views = movieData.views || 0;
+          setViewCount(views);
+        } else {
+          setViewCount(0);
+        }
+      } catch (error) {
+        console.error("Error fetching view count:", error);
+      }
+    };
+
+    fetchViewCount();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchAverageRating = async () => {
+      try {
+        const movieRef = doc(db, "movies", id.toString());
+        const docSnapshot = await getDoc(movieRef);
+
+        if (docSnapshot.exists()) {
+          const movieData = docSnapshot.data();
+          const ratings = movieData.ratings || [];
+
+          let totalRating = 0;
+          let numberOfRatings = ratings.length;
+
+          if (numberOfRatings > 0) {
+            for (let i = 0; i < numberOfRatings; i++) {
+              totalRating += ratings[i].rate;
+            }
+          }
+
+          const avgRating =
+            numberOfRatings > 0 ? totalRating / numberOfRatings : 0;
+          setAverageRating(avgRating);
+        } else {
+          console.log("Movie not found");
+        }
+      } catch (error) {
+        console.error("Error fetching ratings:", error);
+      }
+    };
+
+    fetchAverageRating();
+  }, [id]);
+
   return (
     <Layout>
       <div className="w-full min-h-screen text-white overflow-hidden">
@@ -73,7 +164,7 @@ const FilmDetails = () => {
             <div className="text-white text-2xl font-sans font-bold w-full flex items-center">
               <div>{movie?.title}</div>
               <div className="flex text-red-500 text-lg justify-center items-center mx-4 gap-1">
-                <div className="">{movie?.vote_average.toFixed(1)}</div>
+                <div className="">{averageRating.toFixed(1)}</div>
                 <FaStar />
               </div>
             </div>
@@ -93,8 +184,12 @@ const FilmDetails = () => {
                 </div>
               ))}
             </div>
-            <div className="w-full flex">
+            <div className="w-full flex items-center">
               <div>{movie?.overview}</div>
+            </div>
+            <div className="w-full flex items-center">
+              <div className="mr-2">Số lượt xem:</div>
+              <div>{viewCount}</div>
             </div>
             <div className="w-full p-4">
               <div

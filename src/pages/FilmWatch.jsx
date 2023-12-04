@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import requests from "../Requests";
 import Layout from "../components/Layout";
@@ -18,16 +18,18 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../firebase";
-
+import ReactStars from "react-rating-stars-component";
+import Toastify from "../components/Toastify";
 const FilmWatch = () => {
   const { id } = useParams();
   const [movie, setMovie] = useState();
   const [videos, setVideos] = useState();
-  const [credit, setCredit] = useState();
+  const [rating, setRating] = useState(0);
+  const [userRating, setUserRating] = useState(0);
+  const [comments, setComments] = useState([]);
   const [commentValue, setCommentValue] = useState("");
   const { user } = UserAuth();
   const navigate = useNavigate();
-  const [comments, setComments] = useState([]);
 
   const handleAddComment = async (e) => {
     e.preventDefault();
@@ -79,7 +81,48 @@ const FilmWatch = () => {
     }
   };
 
-  useEffect(() => {
+  const handleRating = async (rate) => {
+    const movieRef = doc(db, "movies", movie.id.toString());
+
+    try {
+      const docSnapshot = await getDoc(movieRef);
+
+      if (docSnapshot.exists()) {
+        const movieData = docSnapshot.data();
+        const ratings = movieData.ratings || [];
+        const userRatingIndex = ratings.findIndex(
+          (rating) => rating.userId === user.uid
+        );
+
+        if (userRatingIndex !== -1) {
+          // User already rated, update their existing rating
+          ratings[userRatingIndex].rate = rate;
+
+          await updateDoc(movieRef, {
+            ratings: ratings,
+          });
+        } else {
+          // Add a new rating for the user
+          ratings.push({ userId: user.uid, rate: rate });
+
+          await updateDoc(movieRef, {
+            ratings: ratings,
+          });
+        }
+      } else {
+        await setDoc(movieRef, {
+          ratings: [{ userId: user.uid, rate: rate }],
+        });
+      }
+
+      setRating(rate);
+      Toastify("Thanks for your rating!");
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  useLayoutEffect(() => {
     axios
       .get(requests.requestFilmById.replace("id", id))
       .then((response) => {
@@ -90,18 +133,7 @@ const FilmWatch = () => {
       });
   }, [id]);
 
-  useEffect(() => {
-    axios
-      .get(requests.requestFilmCreditById.replace("id", id))
-      .then((response) => {
-        setCredit(response.data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }, [id]);
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     axios
       .get(requests.requestVideosFilmById.replace("id", id))
       .then((response) => {
@@ -117,7 +149,7 @@ const FilmWatch = () => {
   };
 
   // get comments from firestore
-  useEffect(() => {
+  useLayoutEffect(() => {
     const getComments = async () => {
       const movieRef = doc(db, "movies", movie?.id.toString());
       const docSnapshot = await getDoc(movieRef);
@@ -127,6 +159,38 @@ const FilmWatch = () => {
     };
     getComments();
   }, [movie?.id]);
+
+  useEffect(() => {
+    const fetchUserRating = async () => {
+      if (!user || !user.uid) {
+        return;
+      }
+      const movieRef = doc(db, "movies", id.toString());
+      try {
+        const docSnapshot = await getDoc(movieRef);
+
+        if (docSnapshot.exists()) {
+          const movieData = docSnapshot.data();
+          const ratings = movieData.ratings || [];
+
+          const userRatingObj = ratings.find(
+            (rating) => rating.userId === user.uid
+          );
+
+          if (userRatingObj) {
+            setUserRating(userRatingObj.rate);
+          } else {
+            setUserRating(0);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user rating:", error);
+      }
+    };
+
+    fetchUserRating();
+  }, [id, user, rating]);
+
   return (
     <Layout>
       <div className="w-full min-h-screen text-white overflow-hidden">
@@ -171,6 +235,39 @@ const FilmWatch = () => {
           </div>
           <div className="w-full flex">
             <div>{movie?.overview}</div>
+          </div>
+        </div>
+        <div className="p-6 my-6 flex flex-col items-center">
+          <div className="flex items-center">
+            <div className="mx-6 font-bold text-2xl ">Đánh giá:</div>
+            {!user?.uid ? (
+              <div className="text-center text-bold m-4">
+                Please{" "}
+                <span
+                  className="text-red-500 cursor-pointer hover:underline"
+                  onClick={handleLoginBtn}
+                >
+                  LOGIN
+                </span>{" "}
+                to Rating
+              </div>
+            ) : (
+              <ReactStars
+                value={userRating}
+                count={5}
+                onChange={handleRating}
+                size={36}
+                activeColor="#ffd700"
+              />
+            )}
+          </div>
+
+          <div className="flex items-center">
+            {userRating !== null ? (
+              <div>Your current rating: {userRating}</div>
+            ) : (
+              <div>You haven't rated this movie yet.</div>
+            )}
           </div>
         </div>
 
