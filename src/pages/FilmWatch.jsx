@@ -26,6 +26,7 @@ const FilmWatch = () => {
   const [videos, setVideos] = useState();
   const [rating, setRating] = useState(0);
   const [userRating, setUserRating] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
   const [comments, setComments] = useState([]);
   const [commentValue, setCommentValue] = useState("");
   const { user } = UserAuth();
@@ -190,7 +191,39 @@ const FilmWatch = () => {
 
     fetchUserRating();
   }, [id, user, rating]);
+  //fetch avr rating
+  useEffect(() => {
+    const fetchAverageRating = async () => {
+      try {
+        const movieRef = doc(db, "movies", id.toString());
+        const docSnapshot = await getDoc(movieRef);
 
+        if (docSnapshot.exists()) {
+          const movieData = docSnapshot.data();
+          const ratings = movieData.ratings || [];
+
+          let totalRating = 0;
+          let numberOfRatings = ratings.length;
+
+          if (numberOfRatings > 0) {
+            for (let i = 0; i < numberOfRatings; i++) {
+              totalRating += ratings[i].rate;
+            }
+          }
+
+          const avgRating =
+            numberOfRatings > 0 ? totalRating / numberOfRatings : 0;
+          setAverageRating(avgRating);
+        } else {
+          console.log("Movie not found");
+        }
+      } catch (error) {
+        console.error("Error fetching ratings:", error);
+      }
+    };
+
+    fetchAverageRating();
+  }, [id]);
   return (
     <Layout>
       <div className="w-full min-h-screen text-white overflow-hidden">
@@ -213,7 +246,7 @@ const FilmWatch = () => {
           <div className="text-white text-2xl font-sans font-bold w-full flex items-center">
             <div>{movie?.title}</div>
             <div className="flex text-red-500 text-lg justify-center items-center mx-4 gap-1">
-              <div className="">{movie?.vote_average.toFixed(1)}</div>
+              <div className="">{averageRating.toFixed(1)}</div>
               <FaStar />
             </div>
           </div>
